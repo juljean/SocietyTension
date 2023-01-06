@@ -54,28 +54,29 @@ def create_dataframe(json_object, folder_name, parameter_id, initial_columns, fi
     :param parameter_id: id of the channel/video which will be the name of the saved file
     :param initial_columns: initial columns' name to keep in dataframe
     :param final_columns: renamed columns, kept in the dataframe
-    :return:
+    :return: dataframe
     """
     df = pd.json_normalize(json_object)
     df.drop(columns=df.columns.difference(initial_columns), axis=1, inplace=True)
     df.set_axis(final_columns, axis=1, inplace=True)
-    df.to_csv(folder_name + str(parameter_id) + ".csv")
+    # df.to_csv(folder_name + str(parameter_id) + ".csv")
+    return df
 
 
 def main():
     """
     Operate the request for fetching. So far only video and comments fetching is available
-    :return:
+    :return: df
     """
     # Fetch Videos from channel
-    # json_object = fetch_data("videos")
-    # create_dataframe(json_object, "ChannelVideoData/",
+    # json_object = fetch_data("videos", constants.FOLDER_NAME_CHANNELS)
+    # df = create_dataframe(json_object, constants.FOLDER_NAME_CHANNELS,
     # constants.CHANNEL_ID, constants.REMAIN_COLUMNS_CHANNEL, constants.FINAL_NAMES_COLUMNS_CHANNEL)
 
     # Fetch Comments from video
-    folder_name = "VideoCommentData/"
-    json_object = fetch_data("comments", folder_name)
-    create_dataframe(json_object, folder_name, constants.VIDEO_ID, constants.REMAIN_COLUMNS_VIDEO, constants.FINAL_NAMES_COLUMNS_VIDEO)
+    json_object = fetch_data("comments", constants.FOLDER_NAME_VIDEO)
+    df = create_dataframe(json_object, constants.FOLDER_NAME_VIDEO, constants.VIDEO_ID, constants.REMAIN_COLUMNS_VIDEO, constants.FINAL_NAMES_COLUMNS_VIDEO)
+    return df
 
 
 if __name__ == "__main__":
