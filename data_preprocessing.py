@@ -3,7 +3,6 @@ from re import sub
 import emot
 import constants
 import fetch
-import spacy
 import stemmer
 
 # Creating basic objects
@@ -34,21 +33,20 @@ def text_to_word_list(text):
     text = text.split()
     text_without_stopwords = []
     for word in text:
-        word = stemmer.stemWord(word)
+        # word = stemmer.stemWord(word)
         if word not in constants.STOP_WORDS:
             text_without_stopwords.append(word)
-    return str(text_without_stopwords)
+    return ' '.join(text_without_stopwords)
 
 
-def main():
-    df = fetch.main()
+def process_comments(video_id, fetch_parameter="comments"):
+    df = fetch.accessAPI(video_id, fetch_parameter)
     df_cleaned = df.dropna().drop_duplicates().reset_index(drop=True)
-    for comment in df_cleaned["textOriginal"]:
-        df_cleaned.loc[df_cleaned["textOriginal"] == comment, ["textOriginal"]] = text_to_word_list(comment)
+    for comment in df_cleaned["text_processed"]:
+        df_cleaned.loc[df_cleaned["text_processed"] == comment, ["text_processed"]] = text_to_word_list(comment)
     preprocessed_df = df_cleaned.dropna().drop_duplicates().reset_index(drop=True)
-    print(preprocessed_df["textOriginal"])
     return preprocessed_df
 
 
 if __name__ == "__main__":
-    main()
+    process_comments(constants.VIDEO_ID, "comments")
