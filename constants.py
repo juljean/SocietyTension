@@ -5,17 +5,20 @@ VIDEO_ID = "b3zs019AP9A"
 
 # Headers in .csv
 FINAL_NAMES_COLUMNS_CHANNEL = ["video_id", "channel_id", "video_title", "video_published_date"]
-FINAL_NAMES_COLUMNS_VIDEO = ["videoId", "channelID", "textOriginal", "authorDisplayName", "publishedAt"]
+FINAL_NAMES_COLUMNS_VIDEO = ["video_id", "view_count", "like_count", "comment_count"]
+FINAL_NAMES_COLUMNS_COMMENT = ["comment_id", "video_id", "text_processed", "author_name", "comment_published_date"]
 
 REMAIN_COLUMNS_CHANNEL = ["snippet.channelId", "id.videoId", "snippet.title", "snippet.publishTime"]
-REMAIN_COLUMNS_VIDEO = ["snippet.topLevelComment.id", "snippet.topLevelComment.snippet.videoId",
+REMAIN_COLUMNS_VIDEO = ["id", "statistics.viewCount", "statistics.likeCount", "statistics.commentCount"]
+REMAIN_COLUMNS_COMMENT = ["snippet.topLevelComment.id", "snippet.topLevelComment.snippet.videoId",
                   "snippet.topLevelComment.snippet.textOriginal",
                   "snippet.topLevelComment.snippet.authorDisplayName",
                   "snippet.topLevelComment.snippet.viewerRating,snippet.topLevelComment.snippet.likeCount",
                   "snippet.topLevelComment.snippet.publishedAt"]
 
-FOLDER_NAME_CHANNEL = "ChannelVideoData/"
-FOLDER_NAME_VIDEO = "VideoCommentData/"
+FOLDER_NAME_CHANNEL = "ChannelData/"
+FOLDER_NAME_VIDEO = "VideoData/"
+FOLDER_NAME_COMMENT = "CommentData/"
 
 # --SQL--
 QUERY_INSERT_CHANNEL_NAME = """
@@ -41,6 +44,10 @@ SELECT * FROM channel_name
 
 QUERY_SELECT_CHANNEL_IDS = """
 SELECT channel_id FROM channel_name
+"""
+
+QUERY_SELECT_VIDEO_IDS = """
+SELECT video_id FROM channel_information
 """
 
 # -- Data Preprocessing--
