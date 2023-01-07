@@ -6,11 +6,12 @@ import configs
 import constants
 
 
-def fetch_data(fetch_parameter, json_folder):
+def fetch_data(fetch_parameter, json_folder, video_id=None):
     """
     Fetch data about videos/comments from YouTube API. Uncomment the block to save data in JSON
+    :param video_id: info request for each Video and Comment statistics from video_id
     :param json_folder: address name of folder to be saved in
-    :param fetch_parameter: str, name of value which has to be fetched: videos/comments (branching may be continued)
+    :param fetch_parameter: str, name of value which has to be fetched: channels/videos/comments
     :return: json_object with fetched data
     """
     # Disable OAuthlib's HTTPS verification when running locally.
@@ -22,7 +23,7 @@ def fetch_data(fetch_parameter, json_folder):
 
     youtube = googleapiclient.discovery.build(
         api_service_name, api_version, developerKey=configs.DEVELOPER_KEY)
-    if fetch_parameter == "videos":
+    if fetch_parameter == "channels":
         request = youtube.search().list(
             part="snippet",
             channelId=constants.CHANNEL_ID,
@@ -30,18 +31,24 @@ def fetch_data(fetch_parameter, json_folder):
             order="viewCount"
         )
 
+    if fetch_parameter == "videos":
+        request = youtube.videos().list(
+            part="statistics",
+            id=video_id
+        )
+
     if fetch_parameter == "comments":
         request = youtube.commentThreads().list(
             part="snippet",
             maxResults=100,
-            videoId=constants.VIDEO_ID
+            videoId=video_id
         )
 
     response = request.execute()["items"]
     # # To save file in json
     # json_object = json.dumps(response, indent=4, ensure_ascii=False)
     #
-    # with open(json_folder + str(constants.VIDEO_ID) + ".json", "w", encoding='utf-8') as outfile:
+    # with open(json_folder + constants.CHANNEL_ID + "_" + str(video_id) + ".json", "w", encoding='utf-8') as outfile:
     #     outfile.write(json_object)
     return response
 
@@ -63,21 +70,30 @@ def create_dataframe(json_object, folder_name, parameter_id, initial_columns, fi
     return df
 
 
-def main():
+def accessAPI(video_id=constants.VIDEO_ID, fetch_parameter="comments"):
     """
     Operate the request for fetching. So far only video and comments fetching is available
     :return: df
     """
-    # Fetch Videos from channel
-    # json_object = fetch_data("videos", constants.FOLDER_NAME_CHANNELS)
-    # df = create_dataframe(json_object, constants.FOLDER_NAME_CHANNELS,
-    # constants.CHANNEL_ID, constants.REMAIN_COLUMNS_CHANNEL, constants.FINAL_NAMES_COLUMNS_CHANNEL)
+    # Fetch Channel information
+    if fetch_parameter == "channels":
+        json_object = fetch_data(fetch_parameter, constants.FOLDER_NAME_CHANNEL, constants.CHANNEL_ID)
+        df = create_dataframe(json_object, constants.FOLDER_NAME_CHANNEL, constants.CHANNEL_ID,
+                              constants.REMAIN_COLUMNS_CHANNEL, constants.FINAL_NAMES_COLUMNS_CHANNEL)
+    # Fetch Video information
+    if fetch_parameter == "videos":
+        json_object = fetch_data(fetch_parameter, constants.FOLDER_NAME_VIDEO, video_id)
+        df = create_dataframe(json_object, constants.FOLDER_NAME_VIDEO, video_id,
+                              constants.REMAIN_COLUMNS_VIDEO, constants.FINAL_NAMES_COLUMNS_VIDEO)
 
-    # Fetch Comments from video
-    json_object = fetch_data("comments", constants.FOLDER_NAME_VIDEO)
-    df = create_dataframe(json_object, constants.FOLDER_NAME_VIDEO, constants.VIDEO_ID, constants.REMAIN_COLUMNS_VIDEO, constants.FINAL_NAMES_COLUMNS_VIDEO)
+    # Fetch Comments information
+    if fetch_parameter == "comments":
+        json_object = fetch_data(fetch_parameter, constants.FOLDER_NAME_COMMENT, video_id)
+        df = create_dataframe(json_object, constants.FOLDER_NAME_COMMENT, video_id,
+                              constants.REMAIN_COLUMNS_COMMENT, constants.FINAL_NAMES_COLUMNS_COMMENT)
+    # print(df)
     return df
 
 
 if __name__ == "__main__":
-    main()
+    accessAPI()
