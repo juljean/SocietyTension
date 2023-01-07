@@ -32,13 +32,34 @@ def execute_values(conn, df, table):
     cursor.close()
 
 
-def connect_and_insert(data):
+def insert_data_into_table(id, data, conn):
+    # row = ('NO_0s6VSBzw',), slice purifies punctuation
+    # Insert channel data
+    if data == "channels":
+        df = fetch.accessAPI(id, data)
+        execute_values(conn, df, 'channel_information')
+
+    # Insert video data
+    if data == "videos":
+        df = fetch.accessAPI(id, data)
+        execute_values(conn, df, 'video_information')
+
+    # Insert comment data
+    if data == "comments":
+        df = data_preprocessing.process_comments(id, data)
+        execute_values(conn, df, 'comment_information')
+
+
+def connect(data):
     """
     Connect to the PostgreSQL database server
     :param data: str, data to insert: "channels"/"videos"/"comments"
-    :return:
+    :return: list with comments/None
     """
     conn = None
+    # Flag when insertion into table is needed
+    insert_flag = 1
+    result = []
     try:
         # connect to the PostgreSQL server
         print('Connecting to the PostgreSQL database...')
@@ -52,30 +73,20 @@ def connect_and_insert(data):
         cur = conn.cursor()
         if data == "channels":
             cur.execute(constants.QUERY_SELECT_CHANNEL_IDS)
+        elif data == "get_training_data":
+            insert_flag = 0
+            training_data = cur.execute(constants.QUERY_SELECT_COMMENTS)
         else:
             cur.execute(constants.QUERY_SELECT_VIDEO_IDS)
         # Iterative insert for dataframes referring to ids
         row = cur.fetchone()
         while row is not None:
-            # row = ('NO_0s6VSBzw',), slice purifies punctuation
-            id = str(row)[2: -3]
-
-            # Insert channel data
-            if data == "channels":
-                df = fetch.accessAPI(id, data)
-                execute_values(conn, df, 'channel_information')
+            row = str(row)[2: -3]
+            if insert_flag:
+                insert_data_into_table(row, data, conn)
+            else:
+                result.append(row)
             row = cur.fetchone()
-
-            # Insert video data
-            if data == "videos":
-                df = fetch.accessAPI(id, data)
-                execute_values(conn, df, 'video_information')
-
-            # Insert comment data
-            if data == "comments":
-                df = data_preprocessing.process_comments(id, data)
-                execute_values(conn, df, 'comment_information')
-
         conn.commit()
         # close the communication with the PostgreSQL
         cur.close()
@@ -85,7 +96,8 @@ def connect_and_insert(data):
         if conn is not None:
             conn.close()
             print('Database connection closed.')
+    return result
 
 
 if __name__ == '__main__':
-    connect_and_insert("channels")
+    connect("get_training_data")
