@@ -43,7 +43,9 @@ def replace_sentiment_words(word, sentiment_dict):
         out = 0
     return out
 
+
 video_ids = db_connection.connect('videos')
+
 
 for video_id in video_ids:
     print(video_id, str(video_id)[2: -3])
@@ -57,27 +59,30 @@ for video_id in video_ids:
     sentiment_map = pd.read_csv('sentiment_results/sentiment_dictionary.csv')
     sentiment_dict = dict(zip(sentiment_map.words.values, sentiment_map.sentiment_coeff.values))
     tfidf = TfidfVectorizer(tokenizer=lambda y: y.split(), norm=None)
-    tfidf.fit(file_weighting.title)
-    features = pd.Series(tfidf.get_feature_names_out())
-    transformed = tfidf.transform(file_weighting.title)
+    try:
+        tfidf.fit(file_weighting.title)
+        features = pd.Series(tfidf.get_feature_names_out())
+        transformed = tfidf.transform(file_weighting.title)
 
-    replaced_tfidf_scores = file_weighting.apply(lambda x: replace_tfidf_words(x, transformed, features), axis=1)
-    replaced_closeness_scores = file_weighting.title.apply(
-        lambda x: list(map(lambda y: replace_sentiment_words(y, sentiment_dict), x.split())))
+        replaced_tfidf_scores = file_weighting.apply(lambda x: replace_tfidf_words(x, transformed, features), axis=1)
+        replaced_closeness_scores = file_weighting.title.apply(
+            lambda x: list(map(lambda y: replace_sentiment_words(y, sentiment_dict), x.split())))
 
-    replacement_df = pd.DataFrame(data=[replaced_closeness_scores, replaced_tfidf_scores, file_weighting.title, file_weighting.comment_id]).T
-    replacement_df.columns = ['sentiment_coeff', 'tfidf_scores', 'sentence', 'comment_id']
-    replacement_df['sentiment_rate'] = replacement_df.apply(
-        lambda x: np.array(x.loc['sentiment_coeff']) @ np.array(x.loc['tfidf_scores']), axis=1)
+        replacement_df = pd.DataFrame(data=[replaced_closeness_scores, replaced_tfidf_scores, file_weighting.title, file_weighting.comment_id]).T
+        replacement_df.columns = ['sentiment_coeff', 'tfidf_scores', 'sentence', 'comment_id']
+        replacement_df['sentiment_rate'] = replacement_df.apply(
+            lambda x: np.array(x.loc['sentiment_coeff']) @ np.array(x.loc['tfidf_scores']), axis=1)
 
-    replacement_df['prediction'] = (replacement_df.sentiment_rate > 0).astype('int8')
-    replacement_df['sentiment'] = [1 if i > -300 else 0 for i in replacement_df.sentiment_rate]
-    replacement_df[['comment_id', 'sentence', 'sentiment']].to_csv('sentiment_results/results.csv', index=False)
-    for index, row in replacement_df[['comment_id', 'sentiment']].iterrows():
-        db_connection.connect('sentiment', float(row['sentiment']), str(row['comment_id']))
-    # Normalization of sentiment from -1 to 1
-    # replacement_df['sentiment_rate'] = round(replacement_df['sentiment_rate'] / replacement_df['sentiment_rate'].abs().max(), 4)
+        replacement_df['prediction'] = (replacement_df.sentiment_rate > 0).astype('int8')
+        replacement_df['sentiment'] = [1 if i > -300 else 0 for i in replacement_df.sentiment_rate]
+        replacement_df[['comment_id', 'sentence', 'sentiment']].to_csv('sentiment_results/results.csv', index=False)
+        for index, row in replacement_df[['comment_id', 'sentiment']].iterrows():
+            db_connection.connect('sentiment', float(row['sentiment']), str(row['comment_id']))
+        # Normalization of sentiment from -1 to 1
+        # replacement_df['sentiment_rate'] = round(replacement_df['sentiment_rate'] / replacement_df['sentiment_rate'].abs().max(), 4)
 
 
-    predicted_classes = replacement_df.prediction
-    y_test = replacement_df.sentiment
+        predicted_classes = replacement_df.prediction
+        y_test = replacement_df.sentiment
+    except ValueError:
+        pass

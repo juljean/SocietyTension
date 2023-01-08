@@ -4,6 +4,7 @@ import fetch
 import constants
 import psycopg2.extras as extras
 import data_preprocessing
+import means_calculation
 
 
 def execute_values(conn, df, table):
@@ -50,9 +51,11 @@ def insert_data_into_table(id, data, conn):
         execute_values(conn, df, 'comment_information')
 
 
-def connect(data, sentiment_value=None, comment_id=None, video_id=None):
+def connect(data, sentiment_value=None, comment_id=None, video_id=None, start_date=None, final_date=None):
     """
     Connect to the PostgreSQL database server
+    :param final_date: datetime, for user to input range
+    :param start_date: datetime, for user to input range
     :param video_id: string, parameter to fetch and process comments by multiple video ids
     :param comment_id: string of comment_id, parameter for ready sentiment insertion
     :param sentiment_value: string of sentiment value, parameter for ready sentiment insertion
@@ -62,6 +65,7 @@ def connect(data, sentiment_value=None, comment_id=None, video_id=None):
     conn = None
     # Flag when insertion into table is needed
     insert_flag = 1
+    # Resulting array for selected info
     result = []
     try:
         # connect to the PostgreSQL server
@@ -84,8 +88,19 @@ def connect(data, sentiment_value=None, comment_id=None, video_id=None):
             cur.execute(constants.QUERY_SELECT_COMMENTS_TRAIN)
         elif data == "get_test_data":
             insert_flag = 0
-            print(video_id)
             cur.execute(constants.QUERY_SELECT_COMMENTS_TEST, (video_id,))
+        # To insert dataframe with mean_sentiments
+        elif data == "mean_sentiment":
+            df = means_calculation.get_final_means()
+            execute_values(conn, df, 'sentiment_date')
+            return 0
+        # To fetch sentiment and published date of comment
+        elif data == "get_date_sentiment":
+            insert_flag = 0
+            cur.execute(constants.QUERY_SELECT_DATE_SENTIMENT)
+        elif data == "sentiment_range":
+            insert_flag = 0
+            cur.execute(constants.QUERY_SELECT_MEAN_SENTIMENT, (start_date, final_date,))
         elif data == "sentiment":
             cur.execute(constants.QUERY_INSERT_COMMENT_SENTIMENT, (sentiment_value, comment_id))
             conn.commit()
@@ -100,7 +115,7 @@ def connect(data, sentiment_value=None, comment_id=None, video_id=None):
             if insert_flag:
                 insert_data_into_table(new_row, data, conn)
             else:
-                if len(row)>1:
+                if len(row) == 2:
                     result.append([row[0], row[1]])
                 else:
                     result.append(row)
@@ -118,4 +133,4 @@ def connect(data, sentiment_value=None, comment_id=None, video_id=None):
 
 
 if __name__ == '__main__':
-    connect("get_test_data")
+    connect("mean_sentiment")
