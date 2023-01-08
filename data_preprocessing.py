@@ -22,10 +22,10 @@ def text_to_word_list(text):
     :return:
     """
     text = str(text)
-    text = text.lower()
     detected_emojis = emot_object.emoji(text)
     if detected_emojis['flag']:
         text += str(detected_emojis['mean'])
+    text = text.lower()
     # Clean the text
     text = sub(r"[^A-Za-zА-Яа-яЄєЇїІі^/_+]", " ", text)
     text = sub(r"\+", " плюс ", text)

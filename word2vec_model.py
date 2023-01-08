@@ -1,8 +1,8 @@
 from time import time
 from gensim.models import Word2Vec
 import multiprocessing
-import data_preprocessing
 import db_connection
+import stemmer
 
 w2v_model = Word2Vec(min_count=3,
                      window=4,
@@ -12,9 +12,9 @@ w2v_model = Word2Vec(min_count=3,
 
 start = time()
 
-training_data = db_connection.connect("get_training_data")
-# List of lists format is needed
-training_data_purified = [training_data[i].split() for i in range(len(training_data))]
+training_data = db_connection.connect("get_train_data")
+# List of [comment_id, comment] format is a train data format
+training_data_purified = [training_data[i][0].split() for i in range(len(training_data))]
 w2v_model.build_vocab(training_data_purified)
 
 print('Time to build vocab: {} mins'.format(round((time() - start) / 60, 2)))

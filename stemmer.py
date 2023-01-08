@@ -72,5 +72,5 @@ def stemWord(word: str) -> str:
     return stem
 
 
-def stemArray(tokens: list) -> list:
-    return map(stemWord, tokens)
+def stemArray(tokens: list):
+    return list(map(stemWord, tokens))
