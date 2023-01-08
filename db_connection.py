@@ -50,9 +50,12 @@ def insert_data_into_table(id, data, conn):
         execute_values(conn, df, 'comment_information')
 
 
-def connect(data):
+def connect(data, sentiment_value=None, comment_id=None, video_id=None):
     """
     Connect to the PostgreSQL database server
+    :param video_id: string, parameter to fetch and process comments by multiple video ids
+    :param comment_id: string of comment_id, parameter for ready sentiment insertion
+    :param sentiment_value: string of sentiment value, parameter for ready sentiment insertion
     :param data: str, data to insert: "channels"/"videos"/"comments"
     :return: list with comments/None
     """
@@ -73,19 +76,34 @@ def connect(data):
         cur = conn.cursor()
         if data == "channels":
             cur.execute(constants.QUERY_SELECT_CHANNEL_IDS)
-        elif data == "get_training_data":
+        elif data == "videos":
             insert_flag = 0
-            training_data = cur.execute(constants.QUERY_SELECT_COMMENTS)
+            cur.execute(constants.QUERY_SELECT_VIDEO_IDS)
+        elif data == "get_train_data":
+            insert_flag = 0
+            cur.execute(constants.QUERY_SELECT_COMMENTS_TRAIN)
+        elif data == "get_test_data":
+            insert_flag = 0
+            print(video_id)
+            cur.execute(constants.QUERY_SELECT_COMMENTS_TEST, (video_id,))
+        elif data == "sentiment":
+            cur.execute(constants.QUERY_INSERT_COMMENT_SENTIMENT, (sentiment_value, comment_id))
+            conn.commit()
+            count = cur.rowcount
+            print(count, "Record Updated successfully ")
         else:
             cur.execute(constants.QUERY_SELECT_VIDEO_IDS)
         # Iterative insert for dataframes referring to ids
         row = cur.fetchone()
         while row is not None:
-            row = str(row)[2: -3]
+            new_row = str(row)[2: -3]
             if insert_flag:
-                insert_data_into_table(row, data, conn)
+                insert_data_into_table(new_row, data, conn)
             else:
-                result.append(row)
+                if len(row)>1:
+                    result.append([row[0], row[1]])
+                else:
+                    result.append(row)
             row = cur.fetchone()
         conn.commit()
         # close the communication with the PostgreSQL
@@ -100,4 +118,4 @@ def connect(data):
 
 
 if __name__ == '__main__':
-    connect("get_training_data")
+    connect("get_test_data")
