@@ -10,6 +10,7 @@ k_means_model = KMeans(n_clusters=10, max_iter=300, random_state=0, n_init='auto
     X=word_vectors.vectors.astype('double'))
 print(word_vectors.similar_by_vector(k_means_model.cluster_centers_[1], topn=20, restrict_vocab=None))
 
+
 def clusterization():
     """
     Assign each word sentiment score — negative or positive value (-1 or 1) based on the cluster to which they
