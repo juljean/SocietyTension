@@ -1,21 +1,52 @@
 from time import time
+
+import numpy as np
 from gensim.models import Word2Vec
 import multiprocessing
-import db_connection
-import stemmer
+from sklearn.manifold import TSNE
 
-w2v_model = Word2Vec(min_count=3,
-                     window=4,
+import db_connection
+
+w2v_model = Word2Vec(min_count=20,
+                     window=6,
                      sample=1e-5,
                      negative=20,
+                     alpha=0.05,
                      workers=multiprocessing.cpu_count()-1)
 
 start = time()
 
-training_data = db_connection.connect("get_train_data")
+training_data = db_connection.get_train_data()
 # List of [comment_id, comment] format is a train data format
-training_data_purified = [training_data[i][0].split() for i in range(len(training_data))]
+training_data_purified = [training_data[i][1].split() for i in range(len(training_data))]
 w2v_model.build_vocab(training_data_purified)
+
+
+def reduce_dimensions(model):
+    num_components = 2  # number of dimensions to keep after compression
+
+    # extract vocabulary from model and vectors in order to associate them in the graph
+    vectors = np.asarray(model.wv.vectors)
+    labels = np.asarray(model.wv.index_to_key)
+
+    # apply TSNE
+    tsne = TSNE(n_components=num_components, random_state=0)
+    vectors = tsne.fit_transform(vectors)
+
+    x_vals = [v[0] for v in vectors]
+    y_vals = [v[1] for v in vectors]
+    return x_vals, y_vals, labels
+
+
+def plot_embeddings(x_vals, y_vals, labels):
+    import plotly.graph_objs as go
+    fig = go.Figure()
+    trace = go.Scatter(x=x_vals, y=y_vals, mode='markers', text=labels)
+    fig.add_trace(trace)
+    fig.update_layout(title="Word2Vec - Visualizzazione embedding con TSNE")
+    fig.show()
+    return fig
+
 
 print('Time to build vocab: {} mins'.format(round((time() - start) / 60, 2)))
 
@@ -26,5 +57,11 @@ w2v_model.train(training_data_purified, total_examples=w2v_model.corpus_count, e
 print('Time to train the model: {} mins'.format(round((time() - start) / 60, 2)))
 
 w2v_model.init_sims(replace=True)
+print(w2v_model.wv.most_similar(positive=['путін'], topn=3))
+print(w2v_model.wv.most_similar(positive=['зеленський'], topn=3))
 
-w2v_model.save("word2vec.model")
+x_vals, y_vals, labels = reduce_dimensions(w2v_model)
+
+plot = plot_embeddings(x_vals, y_vals, labels)
+
+# w2v_model.save("word2vec.model")

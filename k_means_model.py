@@ -6,9 +6,9 @@ from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_samples
 
 word_vectors = Word2Vec.load("word2vec.model").wv
-k_means_model = KMeans(n_clusters=10, max_iter=300, random_state=0, n_init='auto').fit(
+k_means_model = KMeans(n_clusters=2, max_iter=200, random_state=True, n_init=50).fit(
     X=word_vectors.vectors.astype('double'))
-print(word_vectors.similar_by_vector(k_means_model.cluster_centers_[1], topn=20, restrict_vocab=None))
+print(word_vectors.similar_by_vector(k_means_model.cluster_centers_[1], topn=50, restrict_vocab=None))
 
 
 def clusterization():
@@ -20,16 +20,15 @@ def clusterization():
     score)
     :return:
     """
-    positive_cluster_index = 1
+    positive_cluster_index = 0
     words_clusters = pd.DataFrame(word_vectors.index_to_key)
     words_clusters.columns = ['words']
     words_clusters['vectors'] = words_clusters.words.apply(lambda x: word_vectors[f'{x}'])
     words_clusters['cluster'] = words_clusters.vectors.apply(lambda x: k_means_model.predict([np.array(x)]))
     words_clusters.cluster = words_clusters.cluster.apply(lambda x: x[0])
 
-    words_clusters['cluster_value'] = [1 if i == positive_cluster_index else -1 for i in words_clusters.cluster]
-    words_clusters['closeness_score'] = words_clusters.apply(lambda x: 1 / (k_means_model.transform([x.vectors]).min()),
-                                                             axis=1)
+    words_clusters['cluster_value'] = [1 if i==positive_cluster_index else -1 for i in words_clusters.cluster]
+    words_clusters['closeness_score'] = words_clusters.apply(lambda x: 1 / (k_means_model.transform([x.vectors]).min()), axis=1)
     words_clusters['sentiment_coeff'] = words_clusters.closeness_score * words_clusters.cluster_value
 
     words_clusters[['words', 'sentiment_coeff']].to_csv('sentiment_results/sentiment_dictionary.csv', index=False)
@@ -82,5 +81,5 @@ def estimation():
     plt.tight_layout()
     plt.show()
 
-
+estimation()
 clusterization()

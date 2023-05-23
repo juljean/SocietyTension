@@ -6,7 +6,7 @@ from collections import defaultdict
 def get_final_means():
     duplicates = defaultdict(list)
 
-    result = db_connection.connect("get_date_sentiment")
+    result = db_connection.get_date_sentiment()
 
     dates = [sent[0] for sent in result]
     sentiments = [sent[1] for sent in result]

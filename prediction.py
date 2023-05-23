@@ -44,13 +44,13 @@ def replace_sentiment_words(word, sentiment_dict):
     return out
 
 
-video_ids = db_connection.connect('videos')
+video_ids = db_connection.get_video_ids_from_channel_info()
 
 
 for video_id in video_ids:
     print(video_id, str(video_id)[2: -3])
     # List of [comment_id, comment] format is a test data format
-    test_data = db_connection.connect("get_test_data", video_id=str(video_id)[2: -3])
+    test_data = db_connection.get_test_data(video_id=str(video_id)[2: -3])
     print(test_data)
     text_id = [sent[0] for sent in test_data]
     text_data = [sent[1].lower() for sent in test_data]
@@ -77,7 +77,7 @@ for video_id in video_ids:
         replacement_df['sentiment'] = [1 if i > -300 else 0 for i in replacement_df.sentiment_rate]
         replacement_df[['comment_id', 'sentence', 'sentiment']].to_csv('sentiment_results/results.csv', index=False)
         for index, row in replacement_df[['comment_id', 'sentiment']].iterrows():
-            db_connection.connect('sentiment', float(row['sentiment']), str(row['comment_id']))
+            db_connection.insert_sentiment(float(row['sentiment']), str(row['comment_id']))
         # Normalization of sentiment from -1 to 1
         # replacement_df['sentiment_rate'] = round(replacement_df['sentiment_rate'] / replacement_df['sentiment_rate'].abs().max(), 4)
 

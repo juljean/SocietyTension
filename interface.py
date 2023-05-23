@@ -1,3 +1,5 @@
+import pandas as pd
+
 import db_connection
 import matplotlib.pyplot as plt
 import numpy as np
@@ -5,6 +7,8 @@ import regex
 from colorama import Fore
 from datetime import datetime
 import time
+
+
 def date_validator(text):
     ok = regex.match('^(19|20)\d\d[- /.](0[1-9]|1[012])[- /.](0[1-9]|[12][0-9]|3[01])$', text)
     if not ok:
@@ -27,7 +31,7 @@ def date_validator(text):
 
 def get_sentiment_range(start_date, end_date):
     start_time = time.time()
-    result = sorted(db_connection.connect("sentiment_range", start_date=start_date, final_date=end_date))
+    result = sorted(db_connection.get_sentiment_range(start_date=start_date, final_date=end_date))
     dates = [str(sent[0]) for sent in result]
     # For visual distinguishing replace 0 sentiment with 0.01
     sentiments = [0.01 if sent[1] == 0 else sent[1] for sent in result]
@@ -41,7 +45,8 @@ def get_sentiment_range(start_date, end_date):
 
 def main():
     print(
-        Fore.BLUE + 'Hi, welcome to SentimentUA. \nLet\'s figure out the sentiment of Ukrainian users in some data range! ')
+        Fore.BLUE + 'Hi, welcome to SentimentUA. \nLet\'s figure out the sentiment of Ukrainian users in some data '
+                    'range! ')
     # Date type format '2022-02-23'
     start_date = date_validator(input(Fore.WHITE + "Input the start date of the analysis range:"))
     end_date = date_validator(input("Input the end date of the analysis range:"))

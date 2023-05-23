@@ -47,13 +47,21 @@ QUERY_SELECT_CHANNEL_IDS = """
 SELECT channel_id FROM channel_name
 """
 
-QUERY_SELECT_VIDEO_IDS = """
+QUERY_SELECT_VIDEO_IDS_FROM_CHANNEL = """
 SELECT video_id FROM channel_information
+"""
+
+QUERY_SELECT_VIDEO_IDS_FROM_COMMENT = """
+SELECT video_id FROM comment_information
+"""
+
+QUERY_SELECT_COMMENT_IDS_FROM_COMMENT = """
+SELECT comment_id FROM comment_information
 """
 
 # Extraction of comments for model training
 QUERY_SELECT_COMMENTS_TRAIN = """
-SELECT comment_id, text_processed FROM comment_information
+SELECT comment_id, text_processed FROM comment_information where original_language = \'uk\'
 """
 
 # Extraction of comments for model testing
@@ -70,6 +78,20 @@ SELECT comment_published_date, sentiment FROM comment_information WHERE sentimen
 # To extract sentiment for user
 QUERY_SELECT_MEAN_SENTIMENT = """
 SELECT observation_date, mean_sentiment FROM sentiment_date where observation_date BETWEEN %s AND %s
+"""
+
+# Update missing language
+QUERY_UPDATE_LANGUAGE_VALUE = "UPDATE comment_information SET original_language = %s WHERE comment_id = %s"
+
+# Update comment text
+QUERY_TEXT_VALUE = "UPDATE comment_information SET text_processed = %s WHERE comment_id = %s"
+
+# Drop all comments which are more than 14 days apart from video published_date
+QUERY_DELETE_LATE_COMMENTS = """
+DELETE FROM comment_information
+WHERE video_id = %s
+AND comment_published_date > (SELECT video_published_date + INTERVAL '14 days' FROM channel_information
+WHERE video_id = %s);
 """
 
 # -- Data Preprocessing--
