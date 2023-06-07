@@ -48,9 +48,9 @@ video_ids = db_connection.get_video_ids_from_channel_info()
 
 
 for video_id in video_ids:
-    print(video_id, str(video_id)[2: -3])
+    print(video_id, str(video_id))
     # List of [comment_id, comment] format is a test data format
-    test_data = db_connection.get_test_data(video_id=str(video_id)[2: -3])
+    test_data = db_connection.get_test_data(video_id=str(video_id))
     print(test_data)
     text_id = [sent[0] for sent in test_data]
     text_data = [sent[1].lower() for sent in test_data]

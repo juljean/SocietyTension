@@ -59,6 +59,7 @@ def process_comments(video_id, fetch_parameter="comments"):
     df = fetch.accessAPI(video_id=video_id, fetch_parameter=fetch_parameter)
     if df is not None:
         df_cleaned = df.dropna().drop_duplicates().reset_index(drop=True)
+        print(df_cleaned)
         for comment in df_cleaned["text_processed"]:
             text_processed, comment_language = text_to_word_list(comment)
             df_cleaned.loc[df_cleaned["text_processed"] == comment, ["text_processed"]] = text_processed

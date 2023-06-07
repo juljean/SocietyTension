@@ -7,11 +7,11 @@ from sklearn.manifold import TSNE
 
 import db_connection
 
-w2v_model = Word2Vec(min_count=20,
-                     window=6,
+w2v_model = Word2Vec(min_count=15,
+                     window=4,
                      sample=1e-5,
-                     negative=20,
-                     alpha=0.05,
+                     alpha=0.1,
+                     epochs=7,
                      workers=multiprocessing.cpu_count()-1)
 
 start = time()
@@ -57,11 +57,11 @@ w2v_model.train(training_data_purified, total_examples=w2v_model.corpus_count, e
 print('Time to train the model: {} mins'.format(round((time() - start) / 60, 2)))
 
 w2v_model.init_sims(replace=True)
-print(w2v_model.wv.most_similar(positive=['путін'], topn=3))
-print(w2v_model.wv.most_similar(positive=['зеленський'], topn=3))
+print(f"Топ 3 контекстуально-схожих слова на \"Путін\" {w2v_model.wv.most_similar(positive=['путін'], topn=3)}")
+print(f"Топ 3 контекстуально-схожих слова на \"Зеленський\" {w2v_model.wv.most_similar(positive=['зеленський'], topn=3)}")
 
 x_vals, y_vals, labels = reduce_dimensions(w2v_model)
 
 plot = plot_embeddings(x_vals, y_vals, labels)
 
-# w2v_model.save("word2vec.model")
+w2v_model.save("word2vec.model")

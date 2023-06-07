@@ -33,7 +33,7 @@ def execute_values(conn, df, table):
     cursor.close()
 
 
-def insert_data_into_table(id, data, conn, existing_ids, existing_comment_ids):
+def insert_data_into_table(id, data, conn, existing_ids):
     # row = ('NO_0s6VSBzw',), slice purifies punctuation
     # Insert channel data
     if data == "channels":
@@ -228,10 +228,9 @@ def iterate_data_to_insert(cur, data, conn):
         existing_ids = get_video_ids_from_channel_info()
     if data == "comments":
         existing_ids = get_video_ids_from_comment_info()
-        existing_comment_ids = get_comment_ids_from_comment_info()
     while row is not None:
         new_row = str(row)[2: -3]
-        insert_data_into_table(new_row, data, conn, existing_ids, existing_comment_ids)
+        insert_data_into_table(new_row, data, conn, existing_ids)
         row = cur.fetchone()
         # insertion_limit -= 1
     conn.commit()
@@ -261,4 +260,6 @@ def connect():
 
 
 if __name__ == '__main__':
-    insert_new_comments()
+    # insert_channel_info()
+    # insert_new_comments()
+    insert_mean_sentiment()
