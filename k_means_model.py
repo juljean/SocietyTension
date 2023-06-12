@@ -33,8 +33,7 @@ def clusterization():
 
     words_clusters['closeness_score'] = words_clusters.apply(lambda x: 1 / (k_means_model.transform([x.vectors]).min()), axis=1)
     words_clusters['sentiment_coeff'] = words_clusters.closeness_score * words_clusters.cluster_value
-
-    words_clusters[['words', 'sentiment_coeff']].to_csv('sentiment_results/sentiment_dictionary.csv', index=False)
+    return words_clusters
 
 
 def estimation():
@@ -84,5 +83,5 @@ def estimation():
     plt.tight_layout()
     plt.show()
 
+
 estimation()
-clusterization()

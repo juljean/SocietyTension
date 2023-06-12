@@ -4,8 +4,8 @@ import numpy as np
 from gensim.models import Word2Vec
 import multiprocessing
 from sklearn.manifold import TSNE
+from db_connection import db_communicator
 
-import db_connection
 
 w2v_model = Word2Vec(min_count=15,
                      window=4,
@@ -16,7 +16,7 @@ w2v_model = Word2Vec(min_count=15,
 
 start = time()
 
-training_data = db_connection.get_train_data()
+training_data = db_communicator.get_train_data()
 # List of [comment_id, comment] format is a train data format
 training_data_purified = [training_data[i][1].split() for i in range(len(training_data))]
 w2v_model.build_vocab(training_data_purified)

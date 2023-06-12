@@ -39,8 +39,17 @@ VALUES ('ISLNDTV','UCFsMTNtpoT5hvyNK1IUxqAQ'),
 ('STERNENKO', 'UC5HBd4l_kpba5b0O1pK-Bfg');
 """
 
+# Custom DataFrame insertion
+QUERY_INSERT_DF = """
+INSERT INTO %s(%s) VALUES %%s
+"""
+
 QUERY_SELECT_CHANNEL_NAME = """
 SELECT * FROM channel_name
+"""
+
+QUERY_SELECT_ONE_COLUMN_VALUES = """
+SELECT %(column_name)s FROM %(table_name)s
 """
 
 QUERY_SELECT_CHANNEL_IDS = """
